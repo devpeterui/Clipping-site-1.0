@@ -1,0 +1,18 @@
+# One-click setup for Render: New > Blueprint > pick your GitHub repo.
+services:
+  - type: web
+    name: clipper
+    runtime: docker
+    plan: standard            # 2 GB RAM. Whisper needs more than the 512 MB Starter plan has.
+    healthCheckPath: /
+    disk:
+      name: clipper-data      # keeps videos, clips, settings and your YouTube login between deploys
+      mountPath: /data
+      sizeGB: 20
+    envVars:
+      - key: PORT
+        value: "8000"
+      - key: WHISPER_MODEL
+        value: small
+      - key: YOUTUBE_CLIENT_SECRET   # add client_secret.json under Environment > Secret Files
+        value: /etc/secrets/client_secret.json

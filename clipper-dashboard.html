@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Clipper</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap">
+<style>
+:root{--bg:#e8ecf0;--panel:#f7f9fb;--ink:#17202b;--mute:#5d6b7a;--line:#cfd7df;--track:#d5dce3;--clip:#2f54eb;--trend:#c9780a;--ok:#237a4b;--no:#b8402d;--chip:#fbefd9;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#10161d;--panel:#18212b;--ink:#e6ebf0;--mute:#91a0af;--line:#2a3745;--track:#2a3745;--clip:#6f8cff;--trend:#f0a53a;--ok:#4cc08a;--no:#ef7a66;--chip:#3a2d17}}
+:root[data-theme="dark"]{--bg:#10161d;--panel:#18212b;--ink:#e6ebf0;--mute:#91a0af;--line:#2a3745;--track:#2a3745;--clip:#6f8cff;--trend:#f0a53a;--ok:#4cc08a;--no:#ef7a66;--chip:#3a2d17}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.5 "Inter",system-ui,-apple-system,"Segoe UI",Arial,sans-serif}
+h1,h2,h3{font-family:"Inter",system-ui,-apple-system,"Segoe UI",Arial,sans-serif;margin:0;line-height:1.15}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--clip);outline-offset:2px}
+header{display:flex;flex-wrap:wrap;align-items:center;gap:12px 24px;padding:16px 24px;border-bottom:1px solid var(--line);background:var(--panel)}
+header h1{font-size:22px;font-weight:700;margin-right:auto}
+nav{display:flex;gap:4px}
+nav button{border:0;background:none;padding:6px 12px;border-radius:6px;color:var(--mute);font-weight:600}
+nav button[aria-selected=true]{background:var(--bg);color:var(--ink)}
+.ghost{border:1px solid var(--line);background:none;border-radius:6px;padding:6px 12px}
+main{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:24px;padding:24px;max-width:1200px;margin:0 auto}
+@media (max-width:860px){main{grid-template-columns:1fr;padding:16px}}
+.bar{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin-bottom:16px}
+.bar h2{font-size:20px;margin-right:auto}
+.switch{display:flex;align-items:center;gap:8px;font-weight:600}
+.switch input{width:18px;height:18px;accent-color:var(--clip)}
+.notice{background:var(--chip);border-left:3px solid var(--trend);padding:8px 12px;margin-bottom:16px;font-size:14px;border-radius:0 6px 6px 0}
+.clip{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:12px}
+.clip[data-status=approved]{border-left:4px solid var(--ok)}
+.clip[data-status=rejected]{opacity:.55;border-left:4px solid var(--no)}
+.top{display:flex;justify-content:space-between;gap:16px;align-items:flex-start}
+.clip h3{font-size:18px}
+.src{color:var(--mute);font-size:14px}
+.score{font:700 28px/1 "Inter",system-ui,Arial,sans-serif;text-align:right}
+.score small{display:block;font:400 12px "Inter",system-ui,Arial,sans-serif;color:var(--mute)}
+.strip{position:relative;height:10px;background:var(--track);border-radius:5px;margin:12px 0 4px}
+.strip i{position:absolute;top:0;bottom:0;background:var(--clip);border-radius:5px;min-width:4px}
+.times{display:flex;justify-content:space-between;font-size:13px;color:var(--mute)}
+.txt{margin:10px 0;color:var(--ink);max-width:70ch}
+.why{font-size:14px;color:var(--mute)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.chip{background:var(--chip);color:var(--trend);border-radius:999px;padding:2px 10px;font-size:13px;font-weight:600}
+.acts{display:flex;gap:8px;margin-top:10px}
+.acts button{border:1px solid var(--line);background:none;border-radius:6px;padding:6px 14px;font-weight:600}
+.acts .ok{background:var(--ok);border-color:var(--ok);color:#fff}
+.acts .no:hover{border-color:var(--no);color:var(--no)}
+aside{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;align-self:start}
+aside h2{font-size:18px;margin-bottom:4px}
+.trend{display:grid;grid-template-columns:90px 1fr;gap:8px;align-items:center;font-size:14px;margin:6px 0}
+.trend span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.trend b{display:block;height:8px;border-radius:4px;background:var(--trend)}
+table{width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+th,td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--line)}
+th{color:var(--mute);font-weight:600;font-size:14px}
+.st{font-weight:600}.st.done{color:var(--ok)}.st.processing{color:var(--trend)}.st.failed{color:var(--no)}
+.drop{display:block;border:2px dashed var(--line);border-radius:10px;padding:24px;text-align:center;color:var(--mute);margin-bottom:16px}
+.wrap{overflow-x:auto}
+a.ghost{text-decoration:none;color:inherit;display:inline-block}
+.sform{display:grid;gap:14px}
+.ytbox{display:flex;justify-content:space-between;align-items:center;gap:12px;border:1px solid var(--line);border-radius:8px;padding:12px;background:var(--panel)}
+#ytbtn,#ttbtn{background:none;color:var(--ink);border:1px solid var(--line)}
+.sform select{font:inherit;color:inherit;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:5px 8px}
+.sform label:not(.switch){display:flex;align-items:center;gap:8px;font-weight:600}
+.sform input[type=number]{width:80px;font:inherit;color:inherit;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:5px 8px}
+.sform button{justify-self:start;background:var(--clip);border:1px solid var(--clip);color:#fff;border-radius:6px;padding:8px 18px;font-weight:600}
+.post{border-top:1px solid var(--line);margin-top:12px;padding-top:12px}
+.post video{display:block;width:180px;max-width:100%;aspect-ratio:9/16;background:#000;border-radius:8px;margin-bottom:10px}
+.post .row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.post select,.post input{font:inherit;color:inherit;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:5px 8px}
+.post .go{background:var(--clip);border-color:var(--clip);color:#fff;border-radius:6px;padding:6px 14px;font-weight:600;border:1px solid var(--clip)}
+.err{color:var(--no);font-size:14px}
+.hidden{display:none}
+@media (prefers-reduced-motion:no-preference){.clip{transition:opacity .2s}}
+</style>
+</head>
+<body>
+<header>
+  <h1>Clipper</h1>
+  <nav role="tablist">
+    <button role="tab" id="t-queue" aria-selected="true">Review queue</button>
+    <button role="tab" id="t-videos" aria-selected="false">Videos</button>
+    <button role="tab" id="t-settings" aria-selected="false">Auto mode</button>
+  </nav>
+  <button class="ghost" id="connect">Connect backend</button>
+</header>
+
+<main id="queue-view">
+  <section>
+    <div class="bar">
+      <h2 id="qtitle">Clips to review</h2>
+      <label class="switch"><input type="checkbox" id="bytrend" checked> Rank by trends</label>
+    </div>
+    <div class="notice" id="mode"></div>
+    <div id="clips"></div>
+  </section>
+  <aside>
+    <h2>Trending now</h2>
+    <div class="src" id="trendsub">Topics from YouTube across 10 regions</div>
+    <div id="trends"></div>
+  </aside>
+</main>
+
+<main id="videos-view" class="hidden" style="grid-template-columns:1fr">
+  <section>
+    <div class="bar"><h2>Videos</h2></div>
+    <label class="drop">Choose a video you own or have permission to clip
+      <input type="file" id="file" accept="video/*" class="hidden"></label>
+    <h3 style="margin:0 0 8px">Source videos</h3>
+    <div class="wrap"><table><thead><tr><th>File</th><th>Status</th><th>Clips found</th></tr></thead><tbody id="vrows"></tbody></table></div>
+    <h3 style="margin:24px 0 8px">Scheduled and posted</h3>
+    <div class="wrap"><table><thead><tr><th>Platform</th><th>When</th><th>Status</th><th>Result</th></tr></thead><tbody id="prows"></tbody></table></div>
+  </section>
+</main>
+
+<main id="settings-view" class="hidden" style="grid-template-columns:1fr">
+  <section style="max-width:560px">
+    <div class="bar"><h2>Auto mode</h2></div>
+    <div class="notice" id="smode"></div>
+    <form id="sform" class="sform">
+      <label class="switch"><input type="checkbox" id="s_auto"> Approve and render good clips automatically</label>
+      <label>Minimum score to auto-approve <input type="number" id="s_thr" min="30" max="95" step="1"> %</label>
+      <label class="switch"><input type="checkbox" id="s_trend"> Only clips that match a trending topic</label>
+      <label>Count only trending videos with at least <input type="number" id="s_views" min="0" step="10000" style="width:120px"> views</label>
+      <label>Most clips per video <input type="number" id="s_max" min="1" max="20"></label>
+      <label>Daily upload limit <input type="number" id="s_lim" min="1" max="50"></label>
+      <div class="ytbox"><div><b>YouTube channel</b><div id="ytstatus" class="src">Checking</div></div><button type="button" id="ytbtn">Connect YouTube</button></div>
+      <label class="switch"><input type="checkbox" id="s_post"> Upload clips above the target to YouTube automatically</label>
+      <div class="ytbox"><div><b>TikTok account</b><div id="ttstatus" class="src">Checking</div></div><button type="button" id="ttbtn">Connect TikTok</button></div>
+      <label class="switch"><input type="checkbox" id="s_tt"> Upload clips above the target to TikTok automatically</label>
+      <label>Upload as <select id="s_priv"><option value="private">Private</option><option value="unlisted">Unlisted</option><option value="public">Public</option></select></label>
+      <button>Save settings</button>
+    </form>
+    <p class="src">Watch folder: copy videos into the <b>watch</b> folder inside your data directory and they start processing on their own. Posts over the daily limit wait until the next day.</p>
+  </section>
+</main>
+
+<script>
+const DEMO = {
+  videos: [
+    {id:"v1", filename:"podcast-ep42-startups.mp4", status:"done", duration:3120},
+    {id:"v2", filename:"nairobi-street-food-vlog.mp4", status:"done", duration:1260},
+    {id:"v3", filename:"gym-routine-q&a.mp4", status:"processing", duration:1800}
+  ],
+  clips: [
+    {id:"v1:c3", video_id:"v1", start:412, end:451, hook_score:.86, title:"Why most startups die in year two", reason:"Strong claim up front, clear story, ends on a punchline", text:"Everyone thinks it's the competition. It's not. Most startups die because the founders stop talking to customers after the first big contract, and the money hides the problem.", status:"pending"},
+    {id:"v1:c7", video_id:"v1", start:1530, end:1581, hook_score:.79, title:"The AI tool that replaced my intern", reason:"Surprising claim with a concrete example", text:"I gave an AI agent our whole inbox for a week. By Friday it had cleared two hundred emails and booked every meeting. My intern's face said everything.", status:"pending"},
+    {id:"v2:c2", video_id:"v2", start:96, end:133, hook_score:.82, title:"The 50 shilling chapati that went viral", reason:"Visual story with an emotional payoff", text:"He sells chapati at fifty shillings and queues stretch around the corner. People travel across the city just for his sauce and nobody knows the recipe.", status:"pending"},
+    {id:"v1:c11", video_id:"v1", start:2210, end:2262, hook_score:.74, title:"Hiring slow, firing fast is wrong", reason:"Contrarian take, self-contained", text:"The advice is hire slow, fire fast. I think it's backwards. Hire fast with trial projects, and be slow to fire because culture takes years to rebuild.", status:"pending"},
+    {id:"v2:c5", video_id:"v2", start:610, end:655, hook_score:.7, title:"Mandazi vs. donut: the real debate", reason:"Fun, relatable, good comment bait", text:"Tourists call it an African donut. Locals will fight you. A mandazi is lighter, spiced with cardamom, and it belongs with chai, not coffee.", status:"pending"},
+    {id:"v1:c14", video_id:"v1", start:2790, end:2838, hook_score:.66, title:"How I use AI for customer research", reason:"Useful tip, slightly slow opening", text:"I paste fifty support tickets into a model and ask what customers are really afraid of. The answers were uncomfortable and completely accurate.", status:"pending"}
+  ],
+  trends: [["ai",1],["chai",.62],["startups",.58],["viral",.5],["customers",.41],["donut",.33],["election",.3],["football",.28]]
+};
+let S = {videos:[], clips:[], trends:[], posts:[], demo:true};
+let R = {};
+const HOSTED = window.SAME_ORIGIN === true;
+let cfg = {base:"", token:""};
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const fmt = t => Math.floor(t/60) + ":" + String(Math.floor(t%60)).padStart(2,"0");
+
+async function api(path, opts={}) {
+  const r = await fetch(cfg.base + path, {...opts, headers:{"Content-Type":"application/json", ...(cfg.token ? {Authorization:"Bearer "+cfg.token} : {})}});
+  if (!r.ok) throw new Error(r.status);
+  return r.json();
+}
+async function load() {
+  if (!cfg.base && !HOSTED) { S = {videos:DEMO.videos, clips:structuredClone(DEMO.clips), trends:DEMO.trends.map(([topic,score])=>({topic,score})), settings:DEFAULT_SETTINGS, demo:true}; fillSettings(); return render(); }
+  try {
+    const [videos, clips, trends, posts, settings, yt, tt] = await Promise.all([api("/videos"), api("/clips"), api("/trends"), api("/posts"), api("/settings"), api("/auth/youtube/status").catch(() => null), api("/auth/tiktok/status").catch(() => null)]);
+    S = {videos, clips, trends, posts, settings, yt, tt, demo:false};
+    fillSettings();
+    await Promise.all(clips.filter(c => c.status === "approved").map(refreshRender));
+  } catch (e) {
+    if (HOSTED) return alert("The server returned an error (" + e.message + "). Check its logs on Render.");
+    cfg.base = ""; S.demo = true;
+    alert("Couldn't reach the backend. Check that uvicorn is running and the address and token are correct. Showing sample data.");
+    return load();
+  }
+  render();
+}
+async function refreshRender(c) {
+  try { R[c.id] = await api("/clips/" + encodeURIComponent(c.id) + "/render"); } catch (e) {}
+}
+function extra(c) {
+  if (c.status !== "approved") return "";
+  const r = R[c.id] || {status:"none"};
+  if (r.status === "none" || r.status === "failed")
+    return `<div class="post"><button class="ghost" data-act="render" data-id="${esc(c.id)}">Render vertical video</button>${r.error ? `<div class="err">Render failed: ${esc(r.error)}</div>` : ""}</div>`;
+  if (r.status !== "done") return `<div class="post src">Rendering. This can take a minute or two.</div>`;
+  return `<div class="post" data-id="${esc(c.id)}"><video controls playsinline preload="metadata" src="${esc(cfg.base + r.url)}"></video>
+    <div class="row">
+      <a class="ghost" download href="${esc(cfg.base + r.url)}?dl=${encodeURIComponent(c.title || "clip")}">Download clip</a>
+      <select class="pf"><option value="youtube">YouTube Shorts</option><option value="tiktok">TikTok</option><option value="instagram">Instagram Reels</option></select>
+      <select class="pv"><option value="private">Private</option><option value="public">Public</option></select>
+      <input class="pw" type="datetime-local" aria-label="Post time (blank posts now)">
+      <button class="go" data-act="post" data-id="${esc(c.id)}">Schedule post</button></div></div>`;
+}
+function score(c) {
+  const words = new Set(c.text.toLowerCase().match(/[a-z']{3,}/g) || []);
+  const max = Math.max(...S.trends.map(t => t.score), 1);
+  const hits = S.trends.filter(t => words.has(t.topic)).map(t => ({topic:t.topic, w:t.score/max})).sort((a,b)=>b.w-a.w).slice(0,3);
+  const rel = Math.min(hits.reduce((a,h)=>a+h.w,0), 1);
+  return {final:.6*rel + .4*c.hook_score, matched:hits.map(h=>h.topic)};
+}
+function dur(c) {
+  const v = S.videos.find(v => v.id === c.video_id);
+  if (v && v.duration) return v.duration;
+  return Math.max(...S.clips.filter(x => x.video_id === c.video_id).map(x => x.end)) * 1.1;
+}
+function render() {
+  $("#mode").innerHTML = S.demo
+    ? "Showing sample data. Click <b>Connect backend</b> to review your own clips."
+    : "Connected to your backend.";
+  const trendOn = $("#bytrend").checked;
+  const rows = S.clips.map(c => ({c, ...score(c)}))
+    .sort((a,b) => trendOn ? b.final - a.final : b.c.hook_score - a.c.hook_score);
+  const pending = rows.filter(r => r.c.status === "pending").length;
+  $("#qtitle").textContent = pending + " clips to review";
+  $("#clips").innerHTML = rows.map(({c, final, matched}) => {
+    const d = dur(c), v = S.videos.find(v => v.id === c.video_id);
+    const meets = S.settings && c.hook_score >= S.settings.threshold;
+    return `<article class="clip" data-status="${esc(c.status)}">
+      <div class="top"><div><h3>${esc(c.title || "Untitled clip")}</h3>
+        <div class="src">${esc(v ? v.filename : c.video_id)}</div></div>
+        <div class="score">${Math.round((trendOn ? final : c.hook_score)*100)}%<small>${trendOn ? "trend + hook" : "hook score"}</small></div></div>
+      <div class="strip" aria-label="Clip position in source video"><i style="left:${c.start/d*100}%;width:${(c.end-c.start)/d*100}%"></i></div>
+      <div class="times"><span>${fmt(c.start)} to ${fmt(c.end)} (${Math.round(c.end-c.start)}s)</span><span>of ${fmt(d)}</span></div>
+      <p class="txt">${esc(c.text)}</p>
+      <div class="why">${esc(c.reason || "")}</div>
+      ${(matched.length || meets) ? `<div class="chips">${meets ? `<span class="chip" style="background:var(--track);color:var(--ink)">above ${Math.round(S.settings.threshold*100)}% target</span>` : ""}${matched.map(m=>`<span class="chip">trending: ${esc(m)}</span>`).join("")}</div>` : ""}
+      <div class="acts">
+        <button class="ok" data-id="${esc(c.id)}" data-s="approved">${c.status==="approved"?"Approved":"Approve"}</button>
+        <button class="no" data-id="${esc(c.id)}" data-s="rejected">Reject</button>
+      </div>${extra(c)}</article>`;
+  }).join("") || '<div class="notice">No clips yet. Upload a video in the Videos tab and they will appear here.</div>';
+  const mv = S.settings ? S.settings.min_trend_views : 0;
+  $("#trendsub").textContent = mv ? "Topics from YouTube videos with at least " + mv.toLocaleString() + " views, across 10 regions" : "Topics from YouTube and Google Trends across 10 regions";
+  const max = Math.max(...S.trends.map(t => t.score), 1);
+  $("#trends").innerHTML = S.trends.slice(0,12).map(t =>
+    `<div class="trend"><span>${esc(t.topic)}</span><b style="width:${t.score/max*100}%"></b></div>`).join("");
+  $("#prows").innerHTML = (S.posts || []).map(p =>
+    `<tr><td>${esc(p.platform)}</td><td>${new Date(p.scheduled*1000).toLocaleString()}</td><td class="st ${p.status==="posted"?"done":p.status==="failed"?"failed":"processing"}">${esc(p.status)}</td><td>${esc(p.result || p.error || "")}</td></tr>`).join("")
+    || '<tr><td colspan="4" class="src">Nothing scheduled yet. Approve a clip, render it, then schedule it.</td></tr>';
+  $("#vrows").innerHTML = S.videos.map(v =>
+    `<tr><td>${esc(v.filename)}</td><td class="st ${esc(v.status)}">${esc(v.status)}${v.error ? ": " + esc(v.error) : ""}</td><td>${S.clips.filter(c=>c.video_id===v.id).length}</td></tr>`).join("");
+}
+async function setStatus(id, status) {
+  const c = S.clips.find(c => c.id === id); if (!c) return;
+  const next = c.status === status ? "pending" : status;
+  if (!S.demo) { try { await api("/clips/" + encodeURIComponent(id), {method:"PATCH", body:JSON.stringify({status:next})}); } catch(e) { return alert("Couldn't save that change. Try again."); } }
+  c.status = next; render();
+}
+$("#clips").addEventListener("click", async e => {
+  const b = e.target.closest("button[data-id]"); if (!b) return;
+  if (b.dataset.s) return setStatus(b.dataset.id, b.dataset.s);
+  if (S.demo) return alert("Connect your backend to render and post clips.");
+  const id = b.dataset.id;
+  if (b.dataset.act === "render") {
+    try { await api("/clips/" + encodeURIComponent(id) + "/render", {method:"POST"}); R[id] = {status:"queued"}; render(); poll(); }
+    catch (err) { alert("Couldn't start the render. Check the backend is running."); }
+  }
+  if (b.dataset.act === "post") {
+    const f = b.closest(".post"), when = f.querySelector(".pw").value;
+    try {
+      await api("/posts", {method:"POST", body:JSON.stringify({clip_id:id, platform:f.querySelector(".pf").value,
+        privacy:f.querySelector(".pv").value, scheduled_at: when ? Date.parse(when)/1000 : null, caption:""})});
+      S.posts = await api("/posts"); render(); alert(when ? "Post scheduled." : "Posting now. Check the Videos tab for the result.");
+    } catch (err) { alert("Couldn't schedule that post. Make sure the clip is approved and rendered."); }
+  }
+});
+let timer;
+function poll() {
+  clearInterval(timer);
+  timer = setInterval(async () => {
+    const busy = S.clips.filter(c => ["queued","rendering"].includes((R[c.id]||{}).status));
+    if (!busy.length) { clearInterval(timer); return; }
+    await Promise.all(busy.map(refreshRender)); S.posts = await api("/posts").catch(()=>S.posts); render();
+  }, 4000);
+}
+$("#bytrend").addEventListener("change", render);
+function tab(name) {
+  for (const n of ["queue", "videos", "settings"]) {
+    $("#" + n + "-view").classList.toggle("hidden", n !== name);
+    $("#t-" + n).setAttribute("aria-selected", n === name);
+  }
+}
+$("#t-settings").onclick = () => tab("settings");
+const DEFAULT_SETTINGS = {auto_enabled:false, threshold:.75, require_trend:true, min_trend_views:500000, max_per_video:5, daily_limit:3, auto_post:false, auto_post_privacy:"private", auto_post_tiktok:false};
+function fillYT() {
+  const y = S.yt || {configured:false, connected:false};
+  $("#ytstatus").textContent = S.demo ? "Not connected (preview)" : y.connected ? "Connected" + (y.channel ? ": " + y.channel : "") : y.configured ? "Not connected" : "Not set up yet. Add client_secret.json to the data folder.";
+  $("#ytbtn").textContent = y.connected ? "Disconnect" : "Connect YouTube";
+  $("#ytbtn").disabled = !S.demo && !y.connected && !y.configured;
+}
+function fillTT() {
+  const t = S.tt || {configured:false, connected:false};
+  $("#ttstatus").textContent = S.demo ? "Not connected (preview)" : t.connected ? "Connected" + (t.name ? ": " + t.name : "") : t.configured ? "Not connected" : "Not set up yet. Add the TikTok client key and secret on the server.";
+  $("#ttbtn").textContent = t.connected ? "Disconnect" : "Connect TikTok";
+  $("#ttbtn").disabled = !S.demo && !t.connected && !t.configured;
+}
+function fillSettings() {
+  const c = S.settings || DEFAULT_SETTINGS;
+  $("#s_auto").checked = c.auto_enabled; $("#s_thr").value = Math.round(c.threshold * 100);
+  $("#s_trend").checked = c.require_trend; $("#s_views").value = c.min_trend_views ?? 500000; $("#s_max").value = c.max_per_video;
+  $("#s_lim").value = c.daily_limit; $("#s_post").checked = c.auto_post;
+  $("#s_priv").value = c.auto_post_privacy || "private"; fillYT();
+  $("#s_tt").checked = !!c.auto_post_tiktok; fillTT();
+  $("#smode").textContent = S.demo ? "Sample data. Connect your backend to save these settings." : "Applies to every new video from now on.";
+}
+$("#sform").addEventListener("submit", async e => {
+  e.preventDefault();
+  const body = {auto_enabled:$("#s_auto").checked, threshold:+$("#s_thr").value / 100, require_trend:$("#s_trend").checked, min_trend_views:+$("#s_views").value,
+    max_per_video:+$("#s_max").value, daily_limit:+$("#s_lim").value, auto_post:$("#s_post").checked, auto_post_privacy:$("#s_priv").value, auto_post_tiktok:$("#s_tt").checked};
+  if (S.demo) { S.settings = body; return alert("Saved in this preview only. Connect your backend to keep it."); }
+  try { S.settings = await api("/settings", {method:"PUT", body:JSON.stringify(body)}); alert("Settings saved."); render(); }
+  catch (err) { alert(err.message === "400" ? "Connect that account first, then turn on automatic uploads." : "Couldn't save settings. Check the values and try again."); }
+});
+$("#t-queue").onclick = () => tab("queue"); $("#t-videos").onclick = () => tab("videos");
+if (HOSTED) $("#connect").classList.add("hidden");
+$("#connect").onclick = () => {
+  const base = prompt("Backend address", cfg.base || "http://localhost:8000"); if (!base) return;
+  cfg = {base: base.replace(/\/$/, ""), token: prompt("Access token (APP_TOKEN, leave blank if none)") || ""};
+  load();
+};
+$("#file").addEventListener("change", async e => {
+  const f = e.target.files[0]; if (!f) return;
+  if (S.demo) return alert("Connect your backend first, then upload.");
+  const fd = new FormData(); fd.append("file", f);
+  const r = await fetch(cfg.base + "/videos", {method:"POST", body:fd, headers: cfg.token ? {Authorization:"Bearer "+cfg.token} : {}});
+  if (!r.ok) return alert("Upload failed (" + r.status + ").");
+  load();
+});
+$("#ytbtn").onclick = async () => {
+  if (S.demo) return alert("Connect your backend first.");
+  try {
+    if (S.yt && S.yt.connected) { await api("/auth/youtube/disconnect", {method:"POST"}); S.yt = await api("/auth/youtube/status"); return fillYT(); }
+    const {url} = await api("/auth/youtube/start"); location.href = url;
+  } catch (err) { alert("Couldn't start the YouTube connection. Check that client_secret.json is in the data folder."); }
+};
+$("#ttbtn").onclick = async () => {
+  if (S.demo) return alert("Connect your backend first.");
+  try {
+    if (S.tt && S.tt.connected) { await api("/auth/tiktok/disconnect", {method:"POST"}); S.tt = await api("/auth/tiktok/status"); return fillTT(); }
+    const {url} = await api("/auth/tiktok/start"); location.href = url;
+  } catch (err) { alert("Couldn't start the TikTok connection. Check that the TikTok client key and secret are set on the server."); }
+};
+const qp = new URLSearchParams(location.search);
+const yp = qp.get("youtube") || qp.get("tiktok"), which = qp.get("tiktok") ? "TikTok" : "YouTube";
+if (yp) { history.replaceState(null, "", location.pathname); tab("settings"); setTimeout(() => alert(yp === "connected" ? which + " connected." : "The " + which + " connection didn't finish. Try again."), 600); }
+load();
+</script>
+</body>
+</html>
